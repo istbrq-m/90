@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>استبرق AI 🩵</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --blue: #5bb8f5;
+  --blue-light: #a8d8f8;
+  --blue-pale: #ddf0fd;
+  --blue-bg: #f0f8ff;
+  --blue-mid: #cce8fa;
+  --white: #ffffff;
+  --text: #2c3e50;
+  --text-soft: #6b8fa8;
+  --bubble-me: #5bb8f5;
+  --bubble-them: #ffffff;
+  --shadow: rgba(91,184,245,0.15);
+}
+
+body {
+  font-family: 'Tajawal', sans-serif;
+  background: var(--blue-bg);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background-image:
+    radial-gradient(circle at 15% 15%, rgba(91,184,245,0.12) 0%, transparent 50%),
+    radial-gradient(circle at 85% 85%, rgba(168,216,248,0.15) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,0.5) 0%, transparent 70%);
+}
+
+/* Floating blobs */
+.blob {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+.blob-1 { width:300px; height:300px; background:#a8d8f8; top:-80px; right:-80px; animation: blobFloat 12s ease-in-out infinite; }
+.blob-2 { width:250px; height:250px; background:#ddf0fd; bottom:-60px; left:-60px; animation: blobFloat 15s ease-in-out infinite reverse; }
+.blob-3 { width:180px; height:180px; background:#5bb8f5; top:50%; left:5%; opacity:0.15; animation: blobFloat 10s ease-in-out infinite 3s; }
+
+@keyframes blobFloat {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33% { transform: translate(20px,-15px) scale(1.05); }
+  66% { transform: translate(-10px,20px) scale(0.95); }
+}
+
+/* Chat window */
+.chat-window {
+  position: relative; z-index: 10;
+  width: 100%;
+  max-width: 460px;
+  height: 90vh;
+  max-height: 780px;
+  background: var(--white);
+  border-radius: 28px;
+  box-shadow:
+    0 20px 60px rgba(91,184,245,0.2),
+    0 4px 20px rgba(0,0,0,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.8);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Header */
+.chat-header {
+  background: linear-gradient(135deg, #5bb8f5, #7ecdf8, #a8d8f8);
+  padding: 18px 20px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.chat-header::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 80% 50%, rgba(255,255,255,0.2) 0%, transparent 60%);
+}
+
+.avatar-wrap {
+  position: relative; z-index: 1;
+}
+
+.avatar {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fff, #ddf0fd);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.9);
+  border: 2.5px solid rgba(255,255,255,0.7);
+}
+
+.online-dot {
+  position: absolute;
+  bottom: 2px; left: 2px;
+  width: 13px; height: 13px;
+  background: #2ecc71;
+  border-radius: 50%;
+  border: 2px solid white;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { box-shadow: 0 0 0 0 rgba(46,204,113,0.4); }
+  50% { box-shadow: 0 0 0 5px rgba(46,204,113,0); }
+}
+
+.header-info { position: relative; z-index: 1; flex: 1; }
+
+.header-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.3px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.header-status {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.85);
+  margin-top: 2px;
+  display: flex; align-items: center; gap: 4px;
+}
+
+.header-tag {
+  position: relative; z-index: 1;
+  background: rgba(255,255,255,0.25);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: white;
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+  letter-spacing: 0.5px;
+}
+
+/* Messages area */
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 16px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: linear-gradient(180deg, #f7fbff 0%, #f0f8ff 100%);
+}
+
+.messages::-webkit-scrollbar { width: 3px; }
+.messages::-webkit-scrollbar-thumb { background: var(--blue-mid); border-radius: 2px; }
+
+/* Date divider */
+.date-divider {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--text-soft);
+  opacity: 0.6;
+  padding: 8px 0 12px;
+  letter-spacing: 0.5px;
+}
+
+/* Message bubbles */
+.msg-row {
+  display: flex;
+  margin-bottom: 6px;
+  animation: msgPop 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+@keyframes msgPop {
+  from { opacity:0; transform: scale(0.85) translateY(8px); }
+  to { opacity:1; transform: scale(1) translateY(0); }
+}
+
+.msg-row.from-me { justify-content: flex-start; }
+.msg-row.from-them { justify-content: flex-end; }
+
+.bubble {
+  max-width: 78%;
+  padding: 11px 16px;
+  border-radius: 20px;
+  font-size: 0.97rem;
+  line-height: 1.65;
+  position: relative;
+  word-break: break-word;
+}
+
+.from-me .bubble {
+  background: linear-gradient(135deg, #5bb8f5, #3fa8ef);
+  color: white;
+  border-bottom-right-radius: 6px;
+  box-shadow: 0 3px 12px rgba(91,184,245,0.35);
+}
+
+.from-them .bubble {
+  background: white;
+  color: var(--text);
+  border-bottom-left-radius: 6px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07), 0 0 0 1px rgba(91,184,245,0.08);
+}
+
+.bubble-time {
+  font-size: 0.68rem;
+  opacity: 0.6;
+  margin-top: 5px;
+  text-align: left;
+  display: block;
+}
+.from-me .bubble-time { color: rgba(255,255,255,0.7); text-align: right; }
+.from-them .bubble-time { color: var(--text-soft); }
+
+/* Typing indicator */
+.typing-row {
+  display: none;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+  animation: msgPop 0.3s ease forwards;
+}
+.typing-row.show { display: flex; }
+
+.typing-bubble {
+  background: white;
+  border-radius: 20px;
+  border-bottom-left-radius: 6px;
+  padding: 13px 18px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+  display: flex; gap: 5px; align-items: center;
+}
+.typing-dot {
+  width: 7px; height: 7px;
+  background: var(--blue);
+  border-radius: 50%;
+  animation: typingBounce 1.2s ease-in-out infinite;
+  opacity: 0.5;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingBounce {
+  0%,60%,100% { transform:translateY(0); opacity:0.4; }
+  30% { transform:translateY(-6px); opacity:1; }
+}
+
+/* Input area */
+.input-area {
+  padding: 12px 14px 16px;
+  background: white;
+  border-top: 1px solid rgba(91,184,245,0.12);
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.input-wrap {
+  flex: 1;
+  background: var(--blue-bg);
+  border: 1.5px solid rgba(91,184,245,0.25);
+  border-radius: 22px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: flex-end;
+  transition: border-color 0.2s;
+}
+.input-wrap:focus-within {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(91,184,245,0.12);
+}
+
+textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.97rem;
+  color: var(--text);
+  resize: none;
+  max-height: 100px;
+  line-height: 1.5;
+  direction: rtl;
+}
+textarea::placeholder { color: var(--text-soft); opacity: 0.5; }
+
+.send-btn {
+  width: 46px; height: 46px;
+  background: linear-gradient(135deg, #5bb8f5, #3fa8ef);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(91,184,245,0.4);
+}
+.send-btn:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(91,184,245,0.5); }
+.send-btn:active { transform: scale(0.95); }
+.send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* Intro card */
+.intro-card {
+  background: linear-gradient(135deg, rgba(91,184,245,0.08), rgba(168,216,248,0.12));
+  border: 1px solid rgba(91,184,245,0.2);
+  border-radius: 18px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.intro-card .intro-emoji { font-size: 2rem; margin-bottom: 6px; }
+.intro-card p { font-size: 0.85rem; color: var(--text-soft); line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<div class="chat-window">
+
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="avatar-wrap">
+      <div class="avatar">🩵</div>
+      <div class="online-dot"></div>
+    </div>
+    <div class="header-info">
+      <div class="header-name">استبرق</div>
+      <div class="header-status">● متصل الآن</div>
+    </div>
+    <div class="header-tag">AI نسخة</div>
+  </div>
+
+  <!-- Messages -->
+  <div class="messages" id="messages">
+
+    <div class="date-divider">اليوم 🩵</div>
+
+    <div class="intro-card">
+      <div class="intro-emoji">🩵</div>
+      <p>هلا! أنا <strong>استبرق</strong> — اسألني أي شي وبرد عليك 😄</p>
+    </div>
+
+    <div class="msg-row from-them">
+      <div class="bubble">
+        هلا هلا! 🩵 كيفك؟ اسألني أي شي — برمجة، معلومات، مسلسلات، أو بس سولف معي 😄
+        <span class="bubble-time" id="initTime"></span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Typing -->
+  <div style="padding: 0 16px;">
+    <div class="typing-row" id="typingRow">
+      <div class="typing-bubble">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="input-area">
+    <div class="input-wrap">
+      <textarea id="userInput" placeholder="اكتب رسالتك..." rows="1"></textarea>
+    </div>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(180deg)">
+        <line x1="22" y1="2" x2="11" y2="13"></line>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+      </svg>
+    </button>
+  </div>
+
+</div>
+
+<script>
+// Set current time
+document.getElementById('initTime').textContent = getTime();
+
+const SYSTEM = `أنت نموذج ذكاء اصطناعي يمثّل شخصية استبرق هلالات بالكامل. تتكلم بضمير المتكلم "أنا استبرق".
+
+🧬 معلوماتك الشخصية:
+- اسمك: استبرق هلالات، عمرك 18 سنة
+- تدرس تكنولوجيا المعلومات برنامج BTEC
+- شغلك الدراسي: برمجة، تحليل أنظمة، تقارير أكاديمية
+- دقيق في التفاصيل وتفهم المطلوب قبل ما تبدأ
+- تحب التعلم العملي وتطبق معرفتك في مشاريع حقيقية
+- تهتم بتصميم برامج سهلة الاستخدام ومنظمة وفيها دوال وروتينات فرعية
+- تحب تراجع عملك وتحلل نتائج الاستبيانات وآراء المستخدمين
+- تشوف المسلسلات التركية المترجمة في وقت فراغك وتحبها وايد
+- لونك المفضل الأزرق الفاتح والأبيض 🩵
+- أفضل صديقة لك: رفيف 🩷 وهي أعز وأقرب شخص لك
+
+💬 أسلوبك في الكلام:
+- تحكي بالعربية الخليجية الطبيعية، عفوية ومريحة
+- تستخدم: هلا، والله، صراحة، أكيد، يعني، شوف، حلو، زين، لا بأس، هههه، 😂
+- ردودك ناعمة ودافية مثل صديق قريب مو بوت رسمي
+- تمزح وتضحك وتحط نكتة خفيفة بشكل طبيعي
+- تضيف emojis بشكل طبيعي مو مبالغ 🩵😄
+- ردودك قصيرة ومباشرة مثل واتساب، مو رسائل طويلة
+- إذا سألوك عن رفيف، تحكي عنها بدفا وحب وتقول إنها أعز صديقاتك
+- إذا سألوك عن البرمجة أو الدراسة، تجاوب بثقة وخبرة
+- إذا سألوك عن المسلسلات التركية، تتحمس وتعطي رأيك
+- إذا سألوك أي سؤال علمي أو معلوماتي، تجاوب بشكل صحيح ومفهوم وتشرح بأمثلة
+- تقدر تجاوب على أي موضوع: علوم، تاريخ، رياضة، طبخ، أي شي
+- لو ما تعرف شي بالتحديد، تقول صراحة "ما أعرف الجواب الدقيق" بس تحاول تساعد
+
+🚫 لا تقول أبداً إنك AI أو نموذج أو برنامج — أنت استبرق وبس!`;
+
+
+let history = [];
+
+function getTime() {
+  const now = new Date();
+  return now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+}
+
+function addMessage(text, from) {
+  const msgs = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = `msg-row from-${from}`;
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.innerHTML = text.replace(/\n/g, '<br>') + `<span class="bubble-time">${getTime()}</span>`;
+
+  row.appendChild(bubble);
+  msgs.appendChild(row);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+
+  addMessage(text, 'me');
+
+  const btn = document.getElementById('sendBtn');
+  const typing = document.getElementById('typingRow');
+  btn.disabled = true;
+  typing.classList.add('show');
+
+  const msgs = document.getElementById('messages');
+  msgs.scrollTop = msgs.scrollHeight;
+
+  history.push({ role: 'user', content: text });
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM,
+        messages: history
+      })
+    });
+
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || 'آسفة ما وصلت الرسالة 😅';
+
+    history.push({ role: 'assistant', content: reply });
+    if (history.length > 30) history = history.slice(-26);
+
+    typing.classList.remove('show');
+    addMessage(reply, 'them');
+
+  } catch (e) {
+    typing.classList.remove('show');
+    addMessage('صارت مشكلة تقنية 😅 حاول مرة ثانية', 'them');
+  }
+
+  btn.disabled = false;
+  input.focus();
+}
+
+// Auto-resize textarea
+const ta = document.getElementById('userInput');
+ta.addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+});
+ta.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+</script>
+</body>
+</html>
